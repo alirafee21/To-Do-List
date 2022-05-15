@@ -10,7 +10,7 @@ db = SQLAlchemy(app)
 # creates model for database with three columns
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.string(100))
+    title = db.Column(db.String(100))
     complete = db.Column(db.Boolean)
 
 # initalizes the database
@@ -21,4 +21,27 @@ db.create_all()
 def home():
     todo_list = db.session.query(Todo).all()
     return render_template("base.html", todo_list=todo_list)
-    
+
+@app.post("/add")
+def add():
+    title = request.form.get("title")
+    new_todo = Todo(title=title, complete=False)
+    db.session.add(new_todo)
+    db.session.commit()
+    return redirect(url_for("home"))
+
+@app.get("/update/<int:todo_id>")
+def update(todo_id):
+    todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
+    todo.complete = not todo.complete
+    db.session.commit()
+    db.session.commit()
+    return redirect(url_for("home"))
+
+@app.get("/delete/<int:todo_id>")
+def delete(todo_id):
+    # todo = Todo.query.filter_by(id=todo_id).first()
+    todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
+    db.session.delete(todo)
+    db.session.commit()
+    return redirect(url_for("home"))
